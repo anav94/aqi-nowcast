@@ -1,0 +1,100 @@
+openapi: 3.0.3
+info:
+  title: AQI Nowcast & Alerts – Delhi NCR
+  version: "1.0.0"
+  description: |
+    Serverless AQI nowcast API on Cloudflare Workers.
+    Data source: OpenAQ v3. Times are UTC, hourly resolution.
+servers:
+  - url: https://aqi-nowcast.aqinowcast.workers.dev
+paths:
+  /healthz:
+    get:
+      summary: Health check
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Health'
+  /forecast:
+    get:
+      summary: 24h nowcast band (mean ± std)
+      responses:
+        "200":
+          description: Forecast payload
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Forecast'
+        "503":
+          description: No data yet
+  /timeseries:
+    get:
+      summary: Last 72 hours PM2.5
+      responses:
+        "200":
+          description: Time series
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeSeriesResponse'
+        "503":
+          description: No data yet
+components:
+  schemas:
+    Health:
+      type: object
+      properties:
+        ok:
+          type: boolean
+          example: true
+    Forecast:
+      type: object
+      properties:
+        city:
+          type: string
+          example: ncr
+        hour:
+          type: string
+          format: date-time
+          example: 2025-09-05T18:00:00Z
+        pm25_mean:
+          type: number
+          example: 47.5
+        pm25_low:
+          type: number
+          example: 40.1
+        pm25_high:
+          type: number
+          example: 55.3
+        samples:
+          type: integer
+          example: 24
+        method:
+          type: string
+          example: hourly-mean±std
+    TimePoint:
+      type: object
+      properties:
+        ts:
+          type: string
+          format: date-time
+          example: 2025-09-05T17:00:00Z
+        pm25:
+          type: number
+          example: 52.4
+    TimeSeriesResponse:
+      type: object
+      properties:
+        city:
+          type: string
+          example: ncr
+        hours:
+          type: integer
+          example: 72
+        series:
+          type: array
+          items:
+            $ref: '#/components/schemas/TimePoint'

@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Delhi NCR AQI Nowcast</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+<style>
+  body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Arial,sans-serif;margin:0;background:#0b1020;color:#e9eef7}
+  .wrap{max-width:960px;margin:40px auto;padding:0 16px}
+  h1{margin:0 0 8px;font-size:28px}
+  .meta{opacity:.8;margin-bottom:24px}
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin:18px 0}
+  .card{background:#111735;border:1px solid #1b2247;border-radius:14px;padding:16px}
+  .k{opacity:.8;font-size:12px}
+  .v{font-size:22px;margin-top:4px}
+  canvas{background:#0f1530;border:1px solid #1b2247;border-radius:14px;padding:8px}
+  a{color:#9bd1ff;text-decoration:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Delhi NCR AQI Nowcast</h1>
+  <div class="meta">Live serverless API on Cloudflare Workers · Source: OpenAQ v3</div>
+
+  <div class="cards">
+    <div class="card"><div class="k">PM2.5 mean (last 24h)</div><div id="pm25_mean" class="v">–</div></div>
+    <div class="card"><div class="k">Band (±1σ)</div><div id="pm25_band" class="v">–</div></div>
+    <div class="card"><div class="k">Samples</div><div id="samples" class="v">–</div></div>
+    <div class="card"><div class="k">Last update (UTC)</div><div id="updated" class="v">–</div></div>
+  </div>
+
+  <canvas id="chart" height="120"></canvas>
+  <p class="meta">API: <a id="apiForecast" target="_blank">/forecast</a> · <a id="apiSeries" target="_blank">/timeseries</a></p>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+const base = location.origin;
+const els = {
+  mean: document.getElementById('pm25_mean'),
+  band: document.getElementById('pm25_band'),
+  samples: document.getElementById('samples'),
+  updated: document.getElementById('updated'),
+  apiF: document.getElementById('apiForecast'),
+  apiS: document.getElementById('apiSeries'),
+};
+els.apiF.href = base + '/forecast';
+els.apiF.textContent = base + '/forecast';
+els.apiS.href = base + '/timeseries';
+els.apiS.textContent = base + '/timeseries';
+
+async function fetchJSON(u){ const r = await fetch(u); if(!r.ok) throw new Error(u); return r.json(); }
+
+async function load() {
+  const [f,s] = await Promise.all([fetchJSON(base+'/forecast'), fetchJSON(base+'/timeseries')]);
+  els.mean.textContent = f.pm25_mean.toFixed(1) + ' μg/m³';
+  els.band.textContent = f.pm25_low.toFixed(1) + ' – ' + f.pm25_high.toFixed(1);
+  els.samples.textContent = String(f.samples);
+  els.updated.textContent = f.hour;
+
+  const labels = s.series.map(p => p.ts.replace('T',' ').replace('Z',''));
+  const data = s.series.map(p => p.pm25);
+
+  const ctx = document.getElementById('chart');
+  new Chart(ctx, {
+    type: 'line',
+    data: { labels, datasets: [{ label: 'PM2.5 μg/m³', data, fill: false }] },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: true } },
+      scales: { x: { ticks: { maxTicksLimit: 12 } }, y: { beginAtZero: true } }
+    }
+  });
+}
+load().catch(console.error);
+</script>
+</body>
+</html>

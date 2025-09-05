@@ -1,0 +1,17 @@
+{
+  "name": "aqi-nowcast",
+  "main": "src/index.ts",
+  "compatibility_date": "2025-09-05",
+  "kv_namespaces": [
+    {
+      "binding": "AQI_KV",
+      "id": "c4f6a3aa41a64b698abbfa0447c77841"
+    }
+  ],
+  "triggers": {
+    "crons": ["0 * * * *"]
+  },
+  "assets": {
+    "directory": "public"
+  }
+}
