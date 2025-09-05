@@ -1,5 +1,8 @@
 # AQI Nowcast & Alerts — Delhi NCR (Cloudflare Workers)
 
+[![Deploy to Cloudflare Workers](https://github.com/anav94/aqi-nowcast/actions/workflows/deploy.yml/badge.svg)](https://github.com/anav94/aqi-nowcast/actions/workflows/deploy.yml)
+
+
 Live API: https://aqi-nowcast.aqinowcast.workers.dev  
 Endpoints:
 - `/healthz`
